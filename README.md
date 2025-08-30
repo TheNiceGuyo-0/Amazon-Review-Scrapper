@@ -23,3 +23,4 @@ A Python web scraper that extracts product reviews from Amazon using Selenium an
 3. Run: `python scraper.py`
 
 The script will generate `amazon_reviews.csv` with the scraped data.
+[This project is still in progress]
