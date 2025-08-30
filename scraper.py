@@ -108,12 +108,37 @@ class AmazonReviewScraper:
 
     def go_to_next_page(self):
         try:
-            next_button = self.driver.find_element(By.XPATH, '//*[@id="cr-pagination-footer-0"]/a')
-            next_button.click()
-            time.sleep(2)
+            # Check if redirected to login
+            if "ap/signin" in self.driver.current_url:
+                print("⚠️ Amazon login page detected. Please log in manually...")
+                input("Press Enter after logging in to continue...")
+                return True
+
+            next_page_select = [
+                '//*[@id="cr-pagination-footer-0"]/a',
+                '//*[@id="cm_cr-pagination_bar"]/ul/li[2]/a'
+            ]
+            next_button = None
+            for button in next_page_select: 
+                try:
+                    next_button = self.driver.find_element(By.XPATH, button)
+                    if next_button:
+                        next_button.click()
+                    time.sleep(3)
+                except:
+                    continue
+
+            # After clicking, check again for login redirect
+            if "ap/signin" in self.driver.current_url:
+                print("⚠️ Amazon login page detected. Please log in manually...")
+                input("Press Enter after logging in to continue...")
+                return True
+
             return True
         except NoSuchElementException:
+            print("⚠️ No next page button found. Stopping...")
             return False
+
 
     def scrape_all_pages(self, max_pages: int = 5):
         for page in range(max_pages):
@@ -146,42 +171,8 @@ class AmazonReviewScraper:
 
     def close(self):
         """Close the browser."""
-        self.driver.quit()
-
-
-
-if __name__ == "__main__":
-    PRODUCT_URL = "https://www.amazon.com/Instant-Pot-Duo-Mini-Programmable/dp/B06Y1YD5W7/ref=sr_1_3?_encoding=UTF8&content-id=amzn1.sym.8158743a-e3ec-4239-b3a8-31bfee7d4a15&dib=eyJ2IjoiMSJ9.h0NXGO4UwWV-XKN55HotZihM74HV6IHe6Uz31_prQbwTjRLxhmE7ST9iL_49jMPXNoTFNf2Y3PBzWoT7g-zdUIe_9R6x8dyfwoKEZa2iXpzwOA1GtV8PWBXyx3xgzjcvgZS4yEFnR0zcH4usaa_PJ6aXbSBFhNsCDRLheO9QgBswmbLD9C9h7ayusKgAS_JuapE8QZczV9D4UlnEUugRAsZ90IV9glp5BPt5vqFLgk8.DfWxAcaaJCR_G0CvQQsvhxqzXhGyVlPbpzO-O86DAN8&dib_tag=se&keywords=cooker&pd_rd_r=1e0c58c8-b35d-4348-8051-d4c44c7b76d1&pd_rd_w=5MVvD&pd_rd_wg=XtnWR&qid=1756060455&sr=8-3&th=1#customer-reviews_feature_div"
-
-    scraper = AmazonReviewScraper(headless=False)
-
-    try:
-        scraper.open_product_reviews(PRODUCT_URL)
-        
-        # Check if we're actually on a product page with reviews
-        if "customer-reviews" not in scraper.driver.current_url:
-            print("⚠️ Not on reviews page. Redirected to:", scraper.driver.current_url)
-            # Try to navigate directly to the reviews section
-            reviews_url = PRODUCT_URL.replace("#customer-reviews_feature_div", "")
-            reviews_url += "#customerReviews"
-            print("Trying alternative URL:", reviews_url)
-            scraper.driver.get(reviews_url)
-            time.sleep(5)
-        
-        scraper.scrape_all_pages(max_pages=3)
-        
-        # Save to the script's directory
-        import os
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        csv_path = os.path.join(script_dir, "amazon_reviews.csv")
-        scraper.save_to_csv(csv_path)
-        
-    except Exception as e:
-        print(f"❌ Error during scraping: {e}")
-        # Save what we have anyway
-        import os
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        csv_path = os.path.join(script_dir, "amazon_reviews_partial.csv")
-        scraper.save_to_csv(csv_path)
-    # finally:
-    #     scraper.close()
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
+        self.driver = None
