@@ -1,6 +1,6 @@
 import sys
 import time
-from scraper import AmazonReviewScraper  # assumes your class is saved as scraper.py
+from scraper import AmazonReviewScraper 
 
 
 def main():

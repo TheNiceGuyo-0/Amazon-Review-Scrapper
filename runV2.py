@@ -1,7 +1,6 @@
-from scraper import AmazonReviewScraper  # assumes your class is in scraper.py
+from scraper import AmazonReviewScraper 
 
 def main():
-    # Ask user for inputs
     url = input("Enter the Amazon product reviews URL: ").strip()
     if not url:
         print("❌ URL cannot be empty.")
@@ -18,7 +17,7 @@ def main():
 
     try:
         scraper.open_product_reviews(url)
-        scraper.scrape_all_pages(max_pages=no_pages)  # scrape up to 5 pages
+        scraper.scrape_all_pages(max_pages=no_pages)
         scraper.save_to_csv(filename)
     finally:
         scraper.close()
